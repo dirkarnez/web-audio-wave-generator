@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<script>
+// for cross browser
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+// create an AudioContext
+
+const audioContext = new AudioContext();
+
+
+// create an OscillatorNode to generate the sine wave
+var oscillator = audioContext.createOscillator();
+oscillator.type = "sine";
+oscillator.frequency.value = 440;
+
+// create a GainNode to control the volume of the sine wave
+var gain = audioContext.createGain();
+gain.gain.value = 0.5;
+
+// connect the oscillator to the gain and the gain to the destination
+oscillator.connect(gain);
+gain.connect(audioContext.destination);
+
+// start the oscillator
+oscillator.start(0);
+
+
+
+const channels = 2;
+
+// Create an empty two second stereo buffer at the
+// sample rate of the AudioContext
+const frameCount = audioContext.sampleRate * 2.0;
+const myArrayBuffer = audioContext.createBuffer(2, frameCount, audioContext.sampleRate);
+
+
+
+let offlineCtx = new OfflineAudioContext(this.bufferNode.buffer.numberOfChannels, this.bufferNode.buffer.length, this.bufferNode.buffer.sampleRate);
+
+let obs = offlineCtx.createBufferSource();
+obs.buffer = this.buffer;
+
+let gain = offlineCtx.createGain();
+gain.gain.value = this.gain.gain.value;
+obs.connect(gain).connect(offlineCtx.destination);
+obs.start();
+let obsRES = this.ctx.createBufferSource();
+
+await offlineCtx.startRendering().then(renderedBuffer => {
+  obsRES.buffer = r;
+  const song = audioCtx.createBufferSource();
+  song.buffer = renderedBuffer;
+});
+
+
+
+button.onclick = () => {
+  // Fill the buffer with white noise;
+  // just random values between -1.0 and 1.0
+  for (let channel = 0; channel < channels; channel++) {
+    // This gives us the actual ArrayBuffer that contains the data
+    const nowBuffering = myArrayBuffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      // Math.random() is in [0; 1.0]
+      // audio needs to be in [-1.0; 1.0]
+      nowBuffering[i] = Math.random() * 2 - 1;
+    }
+  }
+
+  console.log(myArrayBuffer.numberOfChannels);
+};
+
+
+</script>
+
+</body>
+</html> 
